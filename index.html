@@ -1,0 +1,34 @@
+
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>חיוג ממכון מקראות</title>
+</head>
+<body>
+  <h2>שליחת שיחה עם הודעה מוקלטת</h2>
+  <form id="callForm">
+    <label>מספר טלפון (עם +972):</label><br>
+    <input type="text" id="phone" placeholder="+972..." required>
+    <button type="submit">התקשר</button>
+  </form>
+  <p id="result"></p>
+
+  <script>
+    const form = document.getElementById('callForm');
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const phone = document.getElementById('phone').value;
+      const result = document.getElementById('result');
+      result.textContent = "שולח שיחה...";
+      try {
+        const res = await fetch('/api/call?to=' + encodeURIComponent(phone));
+        const data = await res.text();
+        result.textContent = data;
+      } catch (err) {
+        result.textContent = "שגיאה: " + err;
+      }
+    };
+  </script>
+</body>
+</html>
