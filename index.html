@@ -1,34 +1,132 @@
 
 <!DOCTYPE html>
-<html lang="he">
+<html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>חיוג ממכון מקראות</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>חיוג עם הקלטה</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      text-align: center;
+      padding: 20px;
+      direction: rtl;
+    }
+
+    h1 {
+      color: #333;
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+
+    #form {
+      background: white;
+      border-radius: 10px;
+      display: inline-block;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    .phone-display {
+      font-size: 1.5em;
+      margin-bottom: 20px;
+      background: #eee;
+      padding: 10px;
+      border-radius: 5px;
+      letter-spacing: 2px;
+      width: 100%;
+      max-width: 250px;
+      display: inline-block;
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 60px);
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .keypad button {
+      font-size: 1.5em;
+      padding: 15px;
+      background: #ddd;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .keypad button:hover {
+      background: #ccc;
+    }
+
+    #call-btn {
+      background: #4CAF50;
+      color: white;
+      font-size: 1.2em;
+      padding: 10px 30px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #call-btn:hover {
+      background: #45a049;
+    }
+  </style>
 </head>
 <body>
-  <h2>שליחת שיחה עם הודעה מוקלטת</h2>
-  <form id="callForm">
-    <label>מספר טלפון (עם +972):</label><br>
-    <input type="text" id="phone" placeholder="+972..." required>
-    <button type="submit">התקשר</button>
-  </form>
-  <p id="result"></p>
+  <h1>שליחת שיחה עם הודעה מוקלטת</h1>
+  <div id="form">
+    <div class="phone-display" id="phone-display">+972</div>
+    <div class="keypad">
+      <button onclick="addDigit('1')">1</button>
+      <button onclick="addDigit('2')">2</button>
+      <button onclick="addDigit('3')">3</button>
+      <button onclick="addDigit('4')">4</button>
+      <button onclick="addDigit('5')">5</button>
+      <button onclick="addDigit('6')">6</button>
+      <button onclick="addDigit('7')">7</button>
+      <button onclick="addDigit('8')">8</button>
+      <button onclick="addDigit('9')">9</button>
+      <button onclick="deleteDigit()">⌫</button>
+      <button onclick="addDigit('0')">0</button>
+      <button onclick="clearDigits()">C</button>
+    </div>
+    <button id="call-btn" onclick="makeCall()">התקשר</button>
+  </div>
 
   <script>
-    const form = document.getElementById('callForm');
-    form.onsubmit = async (e) => {
-      e.preventDefault();
-      const phone = document.getElementById('phone').value;
-      const result = document.getElementById('result');
-      result.textContent = "שולח שיחה...";
-      try {
-        const res = await fetch('/api/call?to=' + encodeURIComponent(phone));
-        const data = await res.text();
-        result.textContent = data;
-      } catch (err) {
-        result.textContent = "שגיאה: " + err;
+    let number = "";
+
+    function addDigit(digit) {
+      number += digit;
+      updateDisplay();
+    }
+
+    function deleteDigit() {
+      number = number.slice(0, -1);
+      updateDisplay();
+    }
+
+    function clearDigits() {
+      number = "";
+      updateDisplay();
+    }
+
+    function updateDisplay() {
+      document.getElementById("phone-display").innerText = "+972" + number;
+    }
+
+    function makeCall() {
+      const fullNumber = "+972" + number;
+      if (number === "") {
+        alert("אנא הקש מספר טלפון");
+        return;
       }
-    };
+      window.location.href = "/api/call?to=" + encodeURIComponent(fullNumber);
+    }
   </script>
 </body>
 </html>
