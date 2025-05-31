@@ -1,0 +1,9 @@
+{
+  "name": "twilio-caller",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "twilio": "^4.15.0"
+  }
+}
