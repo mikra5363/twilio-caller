@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -74,22 +73,36 @@
         </tr>
     </thead>
     <tbody>
-        <tr>
-            <td>+972526998568</td>
-            <td class="status-success">הושלם</td>
-            <td>28 שניות</td>
-            <td>14:12 03/06/2025</td>
-        </tr>
-        <tr>
-            <td>+972526991234</td>
-            <td class="status-failed">נכשל</td>
-            <td>0</td>
-            <td>13:55 03/06/2025</td>
-        </tr>
+        <!-- תוכן הלוגים ייכנס כאן אוטומטית -->
     </tbody>
 </table>
 
 <a href="/" class="back-btn">חזור למסך הראשי</a>
+
+<script>
+  fetch('/api/call-log')
+    .then(res => res.json())
+    .then(logs => {
+      const tbody = document.querySelector('tbody');
+      tbody.innerHTML = '';
+
+      logs.forEach(log => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${log.to}</td>
+          <td class="${log.status === 'success' ? 'status-success' : 'status-failed'}">
+            ${log.status === 'success' ? 'הושלם' : 'נכשל'}
+          </td>
+          <td>${log.duration || 0} שניות</td>
+          <td>${log.time}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    })
+    .catch(err => {
+      console.error('שגיאה בטעינת הלוגים', err);
+    });
+</script>
 
 </body>
 </html>
