@@ -125,20 +125,19 @@
     }
 
     function makeCall() {
-  const phone = document.getElementById('phone').value;
-  if (!phone.startsWith('+972') || phone.length < 10) {
-    alert('מספר לא תקין');
-    return;
-  }
-  fetch(`/api/call-log?to=${encodeURIComponent(phone)}`)
-    .then(res => res.text())
-    .then(msg => alert(msg))
-    .catch(err => alert('שגיאה: ' + err));
-}
-
+      const phone = document.getElementById('phone').value;
+      if (!phone.startsWith('+972') || phone.length < 10) {
+        alert('מספר לא תקין');
+        return;
+      }
+      fetch(`/api/call?to=${encodeURIComponent(phone)}`)
+        .then(res => res.text())
+        .then(msg => alert(msg))
+        .catch(err => alert('שגיאה: ' + err));
+    }
 
     function goToLog() {
-       window.location.href = '/log.html';
+      window.location.href = '/call_log/';
     }
   </script>
 </body>
