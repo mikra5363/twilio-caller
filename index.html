@@ -1,86 +1,55 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>חיוג עם הקלטה</title>
+  <meta charset="UTF-8">
+  <title>שיחת טלפון עם הודעה מוקלטת</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
       text-align: center;
-      padding: 20px;
+      background-color: #f2f2f2;
       direction: rtl;
     }
-
     h1 {
-      color: #333;
-      font-size: 2em;
-      margin-bottom: 20px;
+      margin-top: 40px;
     }
-
-    #form {
-      background: white;
-      border-radius: 10px;
-      display: inline-block;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    .phone-container {
+      margin: 20px auto;
+      width: 300px;
     }
-
-    .phone-display {
-      font-size: 1.5em;
-      margin-bottom: 20px;
-      background: #eee;
-      padding: 10px;
-      border-radius: 5px;
-      letter-spacing: 2px;
+    input[type="text"] {
       width: 100%;
-      max-width: 250px;
-      display: inline-block;
+      font-size: 20px;
+      padding: 10px;
+      text-align: left;
+      direction: ltr;
     }
-
-    .keypad {
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 20px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .keyboard {
       display: grid;
-      grid-template-columns: repeat(3, 60px);
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
-      justify-content: center;
-      margin-bottom: 20px;
+      margin-top: 15px;
     }
-
-    .keypad button {
-      font-size: 1.5em;
-      padding: 15px;
-      background: #ddd;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .keypad button:hover {
-      background: #ccc;
-    }
-
-    #call-btn {
-      background: #4CAF50;
-      color: white;
-      font-size: 1.2em;
-      padding: 10px 30px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    #call-btn:hover {
-      background: #45a049;
+    .keyboard button {
+      font-size: 24px;
     }
   </style>
 </head>
 <body>
   <h1>שליחת שיחה עם הודעה מוקלטת</h1>
-  <div id="form">
-    <div class="phone-display" id="phone-display">+972</div>
-    <div class="keypad">
+
+  <div class="phone-container">
+    <label for="phone">מספר טלפון:</label>
+    <input type="text" id="phone" placeholder="+972" value="+972">
+    <button onclick="pasteNumber()">📋 הדבק</button>
+    <div class="keyboard">
       <button onclick="addDigit('1')">1</button>
       <button onclick="addDigit('2')">2</button>
       <button onclick="addDigit('3')">3</button>
@@ -90,42 +59,54 @@
       <button onclick="addDigit('7')">7</button>
       <button onclick="addDigit('8')">8</button>
       <button onclick="addDigit('9')">9</button>
-      <button onclick="deleteDigit()">⌫</button>
       <button onclick="addDigit('0')">0</button>
-      <button onclick="clearDigits()">C</button>
+      <button onclick="backspace()">⌫</button>
+      <button onclick="clearField()">נקה</button>
     </div>
-    <button id="call-btn" onclick="makeCall()">התקשר</button>
+    <button onclick="makeCall()">התקשר</button>
   </div>
 
   <script>
-    let number = "";
-
     function addDigit(digit) {
-      number += digit;
-      updateDisplay();
+      const input = document.getElementById('phone');
+      input.value += digit;
     }
 
-    function deleteDigit() {
-      number = number.slice(0, -1);
-      updateDisplay();
+    function backspace() {
+      const input = document.getElementById('phone');
+      if (input.value.length > 4) {
+        input.value = input.value.slice(0, -1);
+      }
     }
 
-    function clearDigits() {
-      number = "";
-      updateDisplay();
+    function clearField() {
+      document.getElementById('phone').value = '+972';
     }
 
-    function updateDisplay() {
-      document.getElementById("phone-display").innerText = "+972" + number;
+    async function pasteNumber() {
+      try {
+        const text = await navigator.clipboard.readText();
+        let cleaned = text.trim().replace(/^0/, '');
+        if (!cleaned.match(/^\d+$/)) {
+          alert('המספר שהודבק אינו תקין.');
+          return;
+        }
+        document.getElementById('phone').value = '+972' + cleaned;
+      } catch (err) {
+        alert('לא ניתן להדביק מהלוח. נסה לאשר הרשאות העתקה לדפדפן.');
+      }
     }
 
     function makeCall() {
-      const fullNumber = "+972" + number;
-      if (number === "") {
-        alert("אנא הקש מספר טלפון");
+      const phone = document.getElementById('phone').value;
+      if (!phone.startsWith('+972') || phone.length < 10) {
+        alert('מספר לא תקין');
         return;
       }
-      window.location.href = "/api/call?to=" + encodeURIComponent(fullNumber);
+      fetch(`/api/call?to=${encodeURIComponent(phone)}`)
+        .then(res => res.text())
+        .then(msg => alert(msg))
+        .catch(err => alert('שגיאה: ' + err));
     }
   </script>
 </body>
