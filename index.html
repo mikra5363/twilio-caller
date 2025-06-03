@@ -3,33 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <title>שיחת טלפון עם הודעה מוקלטת</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f2f2f2;
+      background-color: #f1f8ff;
+      margin: 0;
+      padding: 0;
       direction: rtl;
+      text-align: center;
     }
     h1 {
-      margin-top: 40px;
+      margin: 20px 15px 10px;
+      font-size: 24px;
+      line-height: 1.4;
+      color: #333;
     }
     .phone-container {
-      margin: 20px auto;
-      width: 300px;
+      max-width: 330px;
+      margin: auto;
+      padding: 15px;
     }
     input[type="text"] {
       width: 100%;
       font-size: 20px;
       padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
       text-align: left;
       direction: ltr;
     }
     button {
       width: 100%;
       padding: 12px;
-      font-size: 20px;
-      margin-top: 10px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      margin-top: 8px;
       cursor: pointer;
+      color: white;
     }
     .keyboard {
       display: grid;
@@ -38,17 +52,25 @@
       margin-top: 15px;
     }
     .keyboard button {
-      font-size: 24px;
+      font-size: 22px;
+      background-color: #3399ff;
+    }
+    #pasteBtn {
+      background-color: #800020;
+    }
+    #callBtn {
+      background-color: #2e8b57;
     }
   </style>
 </head>
 <body>
-  <h1>שליחת שיחה עם הודעה מוקלטת</h1>
+  <h1>שליחת שיחה<br>עם הודעה מוקלטת</h1>
 
   <div class="phone-container">
     <label for="phone">מספר טלפון:</label>
     <input type="text" id="phone" placeholder="+972" value="+972">
-    <button onclick="pasteNumber()">📋 הדבק</button>
+    <button id="pasteBtn" onclick="pasteNumber()">📋 הדבק</button>
+
     <div class="keyboard">
       <button onclick="addDigit('1')">1</button>
       <button onclick="addDigit('2')">2</button>
@@ -63,7 +85,8 @@
       <button onclick="backspace()">⌫</button>
       <button onclick="clearField()">נקה</button>
     </div>
-    <button onclick="makeCall()">התקשר</button>
+
+    <button id="callBtn" onclick="makeCall()">📞 התקשר</button>
   </div>
 
   <script>
@@ -93,7 +116,7 @@
         }
         document.getElementById('phone').value = '+972' + cleaned;
       } catch (err) {
-        alert('לא ניתן להדביק מהלוח. נסה לאשר הרשאות העתקה לדפדפן.');
+        alert('לא ניתן להדביק מהלוח. אשר הרשאות העתקה לדפדפן.');
       }
     }
 
