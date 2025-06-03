@@ -1,74 +1,95 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>יומן שיחות</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 10px;
-      background-color: #f4f6f8;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-      font-size: 1.5em;
-      margin-bottom: 15px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9em;
-      background-color: white;
-    }
-    th, td {
-      padding: 8px;
-      text-align: center;
-      border: 1px solid #ccc;
-    }
-    th {
-      background-color: #e0e0e0;
-    }
-    .status-success {
-      color: green;
-      font-weight: bold;
-    }
-    .status-failed {
-      color: red;
-      font-weight: bold;
-    }
-    .status-queued {
-      color: orange;
-      font-weight: bold;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>יומן שיחות יוצאות</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        header {
+            background-color: #3b5998;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+        table {
+            width: 95%;
+            margin: 1rem auto;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 0.8rem;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        th {
+            background-color: #eaeaea;
+        }
+        .status-success {
+            color: green;
+            font-weight: bold;
+        }
+        .status-failed {
+            color: red;
+            font-weight: bold;
+        }
+        .back-btn {
+            display: block;
+            margin: 1rem auto;
+            padding: 0.6rem 1.2rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            font-size: 1rem;
+        }
+    </style>
 </head>
 <body>
-  <h1>יומן שיחות יוצאות</h1>
-  <table>
+
+<header>יומן שיחות יוצאות</header>
+
+<table>
     <thead>
-      <tr>
-        <th>מספר יעד</th>
-        <th>סטטוס</th>
-        <th>משך</th>
-        <th>תאריך</th>
-      </tr>
+        <tr>
+            <th>מספר יעד</th>
+            <th>סטטוס</th>
+            <th>משך</th>
+            <th>תאריך</th>
+        </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>+972526998568</td>
-        <td class="status-success">הושלם</td>
-        <td>28 שניות</td>
-        <td>03/06/2025 14:12</td>
-      </tr>
-      <tr>
-        <td>+972526991234</td>
-        <td class="status-failed">נכשל</td>
-        <td>0</td>
-        <td>03/06/2025 13:55</td>
-      </tr>
+        <tr>
+            <td>+972526998568</td>
+            <td class="status-success">הושלם</td>
+            <td>28 שניות</td>
+            <td>14:12 03/06/2025</td>
+        </tr>
+        <tr>
+            <td>+972526991234</td>
+            <td class="status-failed">נכשל</td>
+            <td>0</td>
+            <td>13:55 03/06/2025</td>
+        </tr>
     </tbody>
-  </table>
+</table>
+
+<a href="/" class="back-btn">חזור למסך הראשי</a>
+
 </body>
 </html>
