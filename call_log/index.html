@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>יומן שיחות</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 10px;
+      background-color: #f4f6f8;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.5em;
+      margin-bottom: 15px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+      background-color: white;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+      border: 1px solid #ccc;
+    }
+    th {
+      background-color: #e0e0e0;
+    }
+    .status-success {
+      color: green;
+      font-weight: bold;
+    }
+    .status-failed {
+      color: red;
+      font-weight: bold;
+    }
+    .status-queued {
+      color: orange;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>יומן שיחות יוצאות</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>מספר יעד</th>
+        <th>סטטוס</th>
+        <th>משך</th>
+        <th>תאריך</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>+972526998568</td>
+        <td class="status-success">הושלם</td>
+        <td>28 שניות</td>
+        <td>03/06/2025 14:12</td>
+      </tr>
+      <tr>
+        <td>+972526991234</td>
+        <td class="status-failed">נכשל</td>
+        <td>0</td>
+        <td>03/06/2025 13:55</td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>
