@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>יומן שיחות יוצאות</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef3ff;
+      padding: 20px;
+      direction: rtl;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #999;
+    }
+    th {
+      background-color: #3b5998;
+      color: white;
+    }
+    td {
+      background-color: white;
+    }
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+    .fail {
+      color: red;
+      font-weight: bold;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>שיחות יוצאות</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>מספר יעד</th>
+        <th>סטטוס</th>
+        <th>משך</th>
+        <th>תאריך</th>
+      </tr>
+    </thead>
+    <tbody id="log-body"></tbody>
+  </table>
+
+  <button onclick="window.location.href='/'">חזור למסך הראשי</button>
+
+  <script>
+    async function loadLogs() {
+      try {
+        const res = await fetch('/logs.json');
+        const logs = await res.json();
+        const tbody = document.getElementById('log-body');
+        tbody.innerHTML = '';
+
+        logs.slice().reverse().forEach(log => {
+          const tr = document.createElement('tr');
+
+          const statusText = log.status === 'completed' ? 'הושלם' : 'נכשל';
+          const statusClass = log.status === 'completed' ? 'success' : 'fail';
+
+          tr.innerHTML = `
+            <td>${log.to}</td>
+            <td class="${statusClass}">${statusText}</td>
+            <td>${log.duration || 0} שניות</td>
+            <td>${new Date(log.timestamp).toLocaleString('he-IL')}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('שגיאה בטעינת הלוגים:', err);
+      }
+    }
+
+    // טען כל 5 שניות מחדש
+    loadLogs();
+    setInterval(loadLogs, 5000);
+  </script>
+</body>
+</html>
