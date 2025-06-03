@@ -1,17 +1,19 @@
-import twilio from 'twilio';
+const twilio = require('twilio');
 
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const FROM_NUMBER = process.env.TWILIO_PHONE_NUMBER;
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   if (req.method !== 'GET') {
-    return res.status(405).send('Method Not Allowed');
+    res.status(405).send('Method Not Allowed');
+    return;
   }
 
-  const to = req.query.to;
+  const { to } = req.query;
 
   if (!to) {
-    return res.status(400).json({ error: 'Missing "to" parameter' });
+    res.status(400).send('Missing "to" parameter');
+    return;
   }
 
   try {
@@ -21,11 +23,10 @@ export default async function handler(req, res) {
       from: FROM_NUMBER,
     });
 
-    console.log(`שיחה נשלחה ל-${to}, SID: ${call.sid}`);
-
+    console.log(`✅ שיחה נשלחה אל: ${to}, SID: ${call.sid}`);
     res.status(200).send('ההודעה נשלחה בהצלחה ✅');
-  } catch (err) {
-    console.error('שגיאה בשליחת שיחה:', err.message);
-    res.status(500).send('שגיאה בשליחת שיחה ❌');
+  } catch (error) {
+    console.error('❌ שגיאה בשליחת השיחה:', error.message);
+    res.status(500).send('שגיאה בשליחת השיחה ❌');
   }
-}
+};
