@@ -1,5 +1,4 @@
-// קובץ: api/logs.js
-
+// api/logs.js
 import twilio from 'twilio';
 
 const accountSid = process.env.TWILIO_SID;
@@ -19,7 +18,7 @@ export default async function handler(req, res) {
         minute: '2-digit',
         day: '2-digit',
         month: '2-digit',
-        year: 'numeric'
+        year: 'numeric',
       }),
     }));
 
