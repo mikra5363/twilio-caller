@@ -80,7 +80,8 @@
 <a href="/" class="back-btn">חזור למסך הראשי</a>
 
 <script>
-  fetch('/api/call-log')
+   fetch('/api/logs')
+    fetch('/api/call-log')
     .then(res => res.json())
     .then(logs => {
       const tbody = document.querySelector('tbody');
