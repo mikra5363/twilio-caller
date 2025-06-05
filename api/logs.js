@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 
     // שליפת השיחות מ-Twilio עם טווח תאריכים
     const calls = await client.calls.list({ 
-      startTimeAfter: dateAfter,
+// startTimeAfter: dateAfter,  // הסתר את זה זמנית
       limit: parseInt(limit)
     });
 
