@@ -15,8 +15,9 @@ export default async function handler(req, res) {
     console.log('🔍 מחפש שיחות מאז:', dateAfter);
 console.log('🔍 פרמטר period:', period);
     // קביעת טווח תאריכים לפי הפרמטר
-    const { period = 'week', limit = 50 } = req.query;
-    let dateAfter;
+const { period = 'week', limit = 50 } = req.query;
+let dateAfter = new Date(); // ברירת מחדל
+dateAfter.setDate(dateAfter.getDate() - 7); // שבוע אחרון
     
     switch (period) {
       case 'today':
