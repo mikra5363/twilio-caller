@@ -67,7 +67,7 @@
   <script>
     async function loadLogs() {
       try {
-        const res = await fetch('/logs.json');
+        const res = await fetch('/api/logs');
         const logs = await res.json();
         const tbody = document.getElementById('log-body');
         tbody.innerHTML = '';
@@ -75,14 +75,15 @@
         logs.slice().reverse().forEach(log => {
           const tr = document.createElement('tr');
 
-          const statusText = log.status === 'completed' ? 'הושלם' : 'נכשל';
-          const statusClass = log.status === 'completed' ? 'success' : 'fail';
+          const statusText = log.status === 'success' ? 'הושלם' : 'נכשל';
+          const statusClass = log.status === 'success' ? 'success' : 'fail';
 
           tr.innerHTML = `
             <td>${log.to}</td>
             <td class="${statusClass}">${statusText}</td>
             <td>${log.duration || 0} שניות</td>
-            <td>${new Date(log.timestamp).toLocaleString('he-IL')}</td>
+            <td>${log.time}</td>
+
           `;
           tbody.appendChild(tr);
         });
