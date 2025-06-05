@@ -38,11 +38,11 @@ dateAfter.setDate(dateAfter.getDate() - 7); // שבוע אחרון
         dateAfter.setDate(dateAfter.getDate() - 7);
     }
 
-    // שליפת השיחות מ-Twilio עם טווח תאריכים
-    const calls = await client.calls.list({ 
-// startTimeAfter: dateAfter,  // הסתר את זה זמנית
-      limit: parseInt(limit)
-    });
+   // שליפת השיחות מ-Twilio (כל השיחות בינתיים)
+const calls = await client.calls.list({ 
+  // startTimeAfter: dateAfter,  // מבוטל זמנית
+  limit: parseInt(limit)
+});
 
     // עיבוד הנתונים לפורמט מפורט יותר
     const logs = calls.map(call => ({
