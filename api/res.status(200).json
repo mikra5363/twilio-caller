@@ -12,6 +12,8 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('🔍 מחפש שיחות מאז:', dateAfter);
+console.log('🔍 פרמטר period:', period);
     // קביעת טווח תאריכים לפי הפרמטר
     const { period = 'week', limit = 50 } = req.query;
     let dateAfter;
@@ -102,7 +104,7 @@ export default async function handler(req, res) {
     if (stats.completed > 0) {
       stats.avgDuration = Math.round(stats.totalDuration / stats.completed);
     }
-
+console.log('📞 נמצאו שיחות:', calls.length);
     // החזרת התוצאה
     res.status(200).json({
       success: true,
