@@ -1,100 +1,160 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>יומן שיחות יוצאות</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>לוג שיחות – יוצאות ונכנסות</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #eef3ff;
-      padding: 20px;
-      direction: rtl;
-      text-align: center;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #999;
-    }
-    th {
-      background-color: #3b5998;
-      color: white;
-    }
-    td {
-      background-color: white;
-    }
-    .success {
-      color: green;
-      font-weight: bold;
-    }
-    .fail {
-      color: red;
-      font-weight: bold;
-    }
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 18px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+    body { font-family: system-ui, Arial, sans-serif; margin: 20px; color:#222; }
+    h1 { margin: 0 0 10px; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab-btn { padding: 10px 14px; border: 1px solid #ccc; background: #f7f7f7; cursor: pointer; border-radius: 10px; font-weight: 600; }
+    .tab-btn.active { background: #eaf3ff; border-color: #7aa7e9; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+    .filters label { display: inline-flex; gap: 6px; align-items: center; }
+    .filters input[type="date"] { padding: 6px; }
+    .filters button { padding: 8px 12px; border: 1px solid #bbb; background:#fff; border-radius: 8px; cursor:pointer; }
+    .filters button:disabled { opacity: 0.5; cursor: not-allowed; }
+    table { width: 100%; max-width: 1100px; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+    thead th { background: #f0f4f8; }
+    tbody tr:nth-child(even){ background: #fafafa; }
+    .footer-actions { margin-top: 10px; display:flex; gap: 8px; }
   </style>
 </head>
 <body>
-  <h2>שיחות יוצאות</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>מספר יעד</th>
-        <th>סטטוס</th>
-        <th>משך</th>
-        <th>תאריך</th>
-      </tr>
-    </thead>
-    <tbody id="log-body"></tbody>
-  </table>
-
-  <button onclick="window.location.href='/'">חזור למסך הראשי</button>
+  <h1>לוג שיחות</h1>
 
   <script>
-    async function loadLogs() {
-      try {
-        const res = await fetch('/api/logs');
-        const logs = await res.json();
-        const tbody = document.getElementById('log-body');
-        tbody.innerHTML = '';
+    // ה-API באותו פרויקט
+    const INBOUND_API_URL  = '/api/twilio-inbound-calls';
+    const OUTBOUND_API_URL = '/api/twilio-outbound-calls';
+  </script>
 
-        logs.slice().reverse().forEach(log => {
-          const tr = document.createElement('tr');
+  <div class="tabs">
+    <button id="tab-out" class="tab-btn active">שיחות יוצאות</button>
+    <button id="tab-in"  class="tab-btn">שיחות נכנסות</button>
+  </div>
 
-          const statusText = log.status === 'success' ? 'הושלם' : 'נכשל';
-          const statusClass = log.status === 'success' ? 'success' : 'fail';
+  <!-- יוצאות -->
+  <section id="panel-out" class="panel active">
+    <div class="filters">
+      <label>מ־תאריך: <input type="date" id="out-from"></label>
+      <label>עד תאריך: <input type="date" id="out-to"></label>
+      <button id="out-load">טען</button>
+      <button id="out-more" disabled>טען עוד</button>
+    </div>
+    <table id="out-table">
+      <thead>
+        <tr>
+          <th>From</th><th>To</th><th>תאריך ושעה (א״י)</th><th>משך (ש׳׳)</th><th>סטטוס</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="footer-actions">
+      <button id="out-export">ייצוא CSV</button>
+    </div>
+  </section>
 
-          tr.innerHTML = `
-            <td>${log.to}</td>
-            <td class="${statusClass}">${statusText}</td>
-            <td>${log.duration || 0} שניות</td>
-            <td>${log.time}</td>
+  <!-- נכנסות -->
+  <section id="panel-in" class="panel">
+    <div class="filters">
+      <label>מ־תאריך: <input type="date" id="in-from"></label>
+      <label>עד תאריך: <input type="date" id="in-to"></label>
+      <button id="in-load">טען</button>
+      <button id="in-more" disabled>טען עוד</button>
+    </div>
+    <table id="in-table">
+      <thead>
+        <tr>
+          <th>מתקשר (From)</th><th>אל מי (To)</th><th>תאריך ושעה (א״י)</th><th>משך (ש׳׳)</th><th>סטטוס</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="footer-actions">
+      <button id="in-export">ייצוא CSV</button>
+    </div>
+  </section>
 
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        console.error('שגיאה בטעינת הלוגים:', err);
+  <script>
+    (function(){
+      const tz = 'Asia/Jerusalem';
+      const fmt = d => !d ? '' : new Intl.DateTimeFormat('he-IL',{
+        timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit', second:'2-digit'
+      }).format(new Date(d));
+
+      // טאבים
+      const tabOut=document.getElementById('tab-out'), tabIn=document.getElementById('tab-in');
+      const panelOut=document.getElementById('panel-out'), panelIn=document.getElementById('panel-in');
+      tabOut.onclick=()=>{tabOut.classList.add('active');tabIn.classList.remove('active');panelOut.classList.add('active');panelIn.classList.remove('active');};
+      tabIn.onclick =()=>{tabIn .classList.add('active');tabOut.classList.remove('active');panelIn .classList.add('active');panelOut.classList.remove('active');};
+
+      async function fetchPage(url,{fromDate,toDate,pageToken}={}){
+        const p=new URLSearchParams();
+        if(fromDate)p.set('fromDate',fromDate);
+        if(toDate)p.set('toDate',toDate);
+        if(pageToken)p.set('pageToken',pageToken);
+        const r=await fetch(`${url}?${p.toString()}`);
+        if(!r.ok) throw new Error('שגיאה בשליפת נתונים');
+        return r.json();
       }
-    }
+      function appendRows(tbody,items){
+        for(const c of (items||[])){
+          const tr=document.createElement('tr');
+          tr.innerHTML=`<td>${c.from||''}</td><td>${c.to||''}</td><td>${fmt(c.startTime)}</td><td>${c.duration??''}</td><td>${c.status||''}</td>`;
+          tbody.appendChild(tr);
+        }
+      }
+      function exportCSV(tableId,filename){
+        const rows=[...document.querySelectorAll(`#${tableId} tr`)];
+        const csv=rows.map(r=>[...r.querySelectorAll('th,td')].map(td=>{
+          let t=(td.textContent||'').replace(/"/g,'""'); if(/[",\n]/.test(t)) t=`"${t}"`; return t;
+        }).join(',')).join('\n');
+        const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}), a=document.createElement('a');
+        a.href=URL.createObjectURL(blob); a.download=filename; a.style.display='none'; document.body.appendChild(a); a.click(); a.remove();
+      }
 
-    // טען כל 5 שניות מחדש
-    loadLogs();
-    setInterval(loadLogs, 5000);
+      // יוצאות
+      let outNext=null;
+      const outFrom=document.getElementById('out-from'), outTo=document.getElementById('out-to');
+      const outLoad=document.getElementById('out-load'), outMore=document.getElementById('out-more');
+      const outTbody=document.querySelector('#out-table tbody');
+      document.getElementById('out-export').onclick=()=>exportCSV('out-table','outbound-calls.csv');
+      async function loadOut(reset=false){
+        const fromDate=outFrom.value||'', toDate=outTo.value||'', token=reset?null:outNext;
+        if(reset){ outTbody.innerHTML=''; outNext=null; }
+        const data=await fetchPage(OUTBOUND_API_URL,{fromDate,toDate,pageToken:token});
+        appendRows(outTbody,data.items||data||[]); // תומך גם במערך פשוט
+        outNext=data.nextPageToken||null; outMore.disabled=!outNext;
+      }
+      outLoad.onclick=()=>loadOut(true); outMore.onclick=()=>loadOut(false);
+
+      // נכנסות
+      let inNext=null;
+      const inFrom=document.getElementById('in-from'), inTo=document.getElementById('in-to');
+      const inLoad=document.getElementById('in-load'), inMore=document.getElementById('in-more');
+      const inTbody=document.querySelector('#in-table tbody');
+      document.getElementById('in-export').onclick=()=>exportCSV('in-table','inbound-calls.csv');
+      async function loadIn(reset=false){
+        const fromDate=inFrom.value||'', toDate=inTo.value||'', token=reset?null:inNext;
+        if(reset){ inTbody.innerHTML=''; inNext=null; }
+        const data=await fetchPage(INBOUND_API_URL,{fromDate,toDate,pageToken:token});
+        appendRows(inTbody,data.items||data||[]); 
+        inNext=data.nextPageToken||null; inMore.disabled=!inNext;
+      }
+      inLoad.onclick=()=>loadIn(true); inMore.onclick=()=>loadIn(false);
+
+      // ברירת־מחדל: שבוע אחורה
+      const now=new Date(), weekAgo=new Date(now.getTime()-7*24*60*60*1000);
+      const defFrom=weekAgo.toISOString().slice(0,10), defTo=now.toISOString().slice(0,10);
+      outFrom.value=defFrom; outTo.value=defTo; inFrom.value=defFrom; inTo.value=defTo;
+      loadOut(true).catch(console.error); loadIn(true).catch(console.error);
+    })();
   </script>
 </body>
 </html>
