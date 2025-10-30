@@ -172,19 +172,6 @@
       border: 1px solid rgba(52, 152, 219, 0.2);
     }
     
-    .status {
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    
-    .status.completed { background: #d5f4e6; color: #27ae60; }
-    .status.failed { background: #ffeaea; color: #e74c3c; }
-    .status.busy { background: #fff3cd; color: #f39c12; }
-    .status.no-answer { background: #e9ecef; color: #6c757d; }
-    
     .action-btn {
       background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
       color: white;
@@ -198,7 +185,7 @@
       min-width: 70px;
     }
     
-    .action-btn:hover {
+    .action-btn:hover:not(.completed) {
       transform: translateY(-2px);
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
@@ -208,8 +195,9 @@
       cursor: default;
     }
     
-    .action-btn.completed:hover {
-      transform: none;
+    .action-btn.loading {
+      opacity: 0.7;
+      cursor: wait;
     }
     
     .footer-actions { 
@@ -331,6 +319,10 @@
       // ה-API באותו פרויקט
       const INBOUND_API_URL  = '/api/twilio-inbound-calls';
       const OUTBOUND_API_URL = '/api/twilio-outbound-calls';
+      const ACTIONS_API_URL = 'call-actions.php';
+      
+      // מערך לשמירת השיחות שבוצעו
+      let completedCalls = new Set();
       
       // פונקציה לעיבוד מספרי טלפון
       function formatPhoneNumber(phone) {
@@ -339,17 +331,57 @@
         return phone.replace(/^\+972/, '0');
       }
       
-      // פונקציה לעיצוב סטטוס
-      function formatStatus(status) {
-        const statusMap = {
-          'completed': 'completed',
-          'answered': 'completed', 
-          'failed': 'failed',
-          'busy': 'busy',
-          'no-answer': 'no-answer',
-          'no_answer': 'no-answer'
-        };
-        return statusMap[status] || 'no-answer';
+      // יצירת ID ייחודי לשיחה
+      function generateCallId(phone, startTime) {
+        const cleanPhone = formatPhoneNumber(phone);
+        const timestamp = new Date(startTime).getTime();
+        return `${cleanPhone}_${timestamp}`;
+      }
+      
+      // טעינת רשימת השיחות שבוצעו
+      async function loadCompletedCalls() {
+        try {
+          const response = await fetch(ACTIONS_API_URL);
+          const data = await response.json();
+          completedCalls = new Set(data.completed || []);
+        } catch (error) {
+          console.error('שגיאה בטעינת נתוני השיחות שבוצעו:', error);
+        }
+      }
+      
+      // שמירת שיחה כבוצעה
+      async function markCallCompleted(callId, button) {
+        try {
+          button.classList.add('loading');
+          button.textContent = 'שומר...';
+          
+          const response = await fetch(ACTIONS_API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'complete',
+              callId: callId
+            })
+          });
+          
+          if (response.ok) {
+            completedCalls.add(callId);
+            button.classList.remove('loading');
+            button.classList.add('completed');
+            button.textContent = '✓ בוצע';
+          } else {
+            throw new Error('שגיאה בשמירה');
+          }
+        } catch (error) {
+          console.error('שגיאה בשמירת השיחה:', error);
+          button.classList.remove('loading');
+          button.textContent = 'שגיאה';
+          setTimeout(() => {
+            button.textContent = 'בוצע';
+          }, 2000);
+        }
       }
     </script>
 
@@ -370,7 +402,7 @@
         <table id="in-table">
           <thead>
             <tr>
-              <th>מתקשר</th><th>תאריך ושעה (א״י)</th><th>משך (ש׳׳)</th><th>סטטוס</th><th>פעולה</th>
+              <th>מתקשר</th><th>תאריך ושעה (א״י)</th><th>משך (ש׳׳)</th><th>פעולה</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -393,7 +425,7 @@
         <table id="out-table">
           <thead>
             <tr>
-              <th>למי התקשרנו</th><th>תאריך ושעה (א״י)</th><th>משך (ש׳׳)</th><th>סטטוס</th><th>פעולה</th>
+              <th>למי התקשרנו</th><th>תאריך ושעה (א״י)</th><th>משך (ש׳׳)</th><th>פעולה</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -441,14 +473,21 @@
         return r.json();
       }
       
-      function createActionButton() {
+      function createActionButton(callId) {
         const btn = document.createElement('button');
         btn.className = 'action-btn';
-        btn.textContent = 'בוצע';
-        btn.onclick = function() {
-          this.classList.add('completed');
-          this.textContent = '✓ בוצע';
-        };
+        
+        // בדיקה אם השיחה כבר בוצעה
+        if (completedCalls.has(callId)) {
+          btn.classList.add('completed');
+          btn.textContent = '✓ בוצע';
+        } else {
+          btn.textContent = 'בוצע';
+          btn.onclick = function() {
+            markCallCompleted(callId, this);
+          };
+        }
+        
         return btn;
       }
       
@@ -456,19 +495,18 @@
         for(const c of (items||[])){
           const tr=document.createElement('tr');
           const phoneFormatted = formatPhoneNumber(c.from);
-          const statusFormatted = formatStatus(c.status);
+          const callId = generateCallId(c.from, c.startTime);
           
           tr.innerHTML=`
             <td><span class="phone-number">${phoneFormatted}</span></td>
             <td>${fmt(c.startTime)}</td>
             <td>${c.duration??''}</td>
-            <td><span class="status ${statusFormatted}">${c.status||''}</span></td>
             <td></td>
           `;
           
           // הוספת כפתור פעולה
           const actionCell = tr.lastElementChild;
-          actionCell.appendChild(createActionButton());
+          actionCell.appendChild(createActionButton(callId));
           
           tbody.appendChild(tr);
         }
@@ -478,19 +516,18 @@
         for(const c of (items||[])){
           const tr=document.createElement('tr');
           const phoneFormatted = formatPhoneNumber(c.to);
-          const statusFormatted = formatStatus(c.status);
+          const callId = generateCallId(c.to, c.startTime);
           
           tr.innerHTML=`
             <td><span class="phone-number">${phoneFormatted}</span></td>
             <td>${fmt(c.startTime)}</td>
             <td>${c.duration??''}</td>
-            <td><span class="status ${statusFormatted}">${c.status||''}</span></td>
             <td></td>
           `;
           
           // הוספת כפתור פעולה
           const actionCell = tr.lastElementChild;
-          actionCell.appendChild(createActionButton());
+          actionCell.appendChild(createActionButton(callId));
           
           tbody.appendChild(tr);
         }
@@ -555,9 +592,14 @@
       const defFrom=weekAgo.toISOString().slice(0,10), defTo=now.toISOString().slice(0,10);
       outFrom.value=defFrom; outTo.value=defTo; inFrom.value=defFrom; inTo.value=defTo;
       
-      // טעינה ראשונית - נכנסות קודם
-      loadIn(true).catch(console.error); 
-      loadOut(true).catch(console.error);
+      // טעינה ראשונית
+      async function init() {
+        await loadCompletedCalls();
+        loadIn(true).catch(console.error); 
+        loadOut(true).catch(console.error);
+      }
+      
+      init();
     })();
   </script>
 </body>
