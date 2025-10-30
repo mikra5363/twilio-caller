@@ -5,80 +5,405 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>לוג שיחות – יוצאות ונכנסות</title>
   <style>
-    body { font-family: system-ui, Arial, sans-serif; margin: 20px; color:#222; }
-    h1 { margin: 0 0 10px; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-    .tab-btn { padding: 10px 14px; border: 1px solid #ccc; background: #f7f7f7; cursor: pointer; border-radius: 10px; font-weight: 600; }
-    .tab-btn.active { background: #eaf3ff; border-color: #7aa7e9; }
+    * { box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', system-ui, Arial, sans-serif; 
+      margin: 0; 
+      padding: 20px; 
+      color: #2c3e50; 
+      background: linear-gradient(135deg, #f8fafe 0%, #f1f7ff 100%);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 { 
+      margin: 0 0 30px; 
+      color: #34495e;
+      font-weight: 300;
+      font-size: 2.2em;
+      text-align: center;
+    }
+    
+    .tabs { 
+      display: flex; 
+      gap: 12px; 
+      margin-bottom: 24px; 
+      justify-content: center;
+    }
+    
+    .tab-btn { 
+      padding: 14px 28px; 
+      border: 2px solid transparent; 
+      background: rgba(255, 255, 255, 0.8); 
+      cursor: pointer; 
+      border-radius: 25px; 
+      font-weight: 500; 
+      transition: all 0.3s ease;
+      color: #5a6c7d;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.95);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    }
+    
+    .tab-btn.active { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 6px 25px rgba(102, 126, 234, 0.3);
+    }
+    
     .panel { display: none; }
     .panel.active { display: block; }
-    .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
-    .filters label { display: inline-flex; gap: 6px; align-items: center; }
-    .filters input[type="date"] { padding: 6px; }
-    .filters button { padding: 8px 12px; border: 1px solid #bbb; background:#fff; border-radius: 8px; cursor:pointer; }
-    .filters button:disabled { opacity: 0.5; cursor: not-allowed; }
-    table { width: 100%; max-width: 1100px; border-collapse: collapse; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
-    thead th { background: #f0f4f8; }
-    tbody tr:nth-child(even){ background: #fafafa; }
-    .footer-actions { margin-top: 10px; display:flex; gap: 8px; }
+    
+    .filters { 
+      display: flex; 
+      gap: 12px; 
+      align-items: center; 
+      flex-wrap: wrap; 
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      backdrop-filter: blur(10px);
+    }
+    
+    .filters label { 
+      display: flex; 
+      gap: 8px; 
+      align-items: center;
+      font-weight: 500;
+      color: #5a6c7d;
+    }
+    
+    .filters input[type="date"] { 
+      padding: 10px 12px;
+      border: 2px solid #e1e8ed;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    .filters input[type="date"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .filters button { 
+      padding: 10px 20px; 
+      border: 2px solid transparent; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 10px; 
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .filters button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .filters button:disabled { 
+      opacity: 0.5; 
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .table-container {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+    }
+    
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+    }
+    
+    th, td { 
+      padding: 16px 12px; 
+      text-align: right; 
+      border-bottom: 1px solid rgba(225, 232, 237, 0.5);
+    }
+    
+    thead th { 
+      background: linear-gradient(135deg, #f8fafe 0%, #f1f7ff 100%);
+      font-weight: 600;
+      color: #34495e;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    tbody tr { 
+      transition: all 0.3s ease;
+    }
+    
+    tbody tr:hover { 
+      background: rgba(102, 126, 234, 0.05);
+      transform: scale(1.01);
+    }
+    
+    .phone-number {
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      color: #2c3e50;
+      background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%);
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: inline-block;
+      min-width: 120px;
+      text-align: center;
+      border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .status {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .status.completed { background: #d5f4e6; color: #27ae60; }
+    .status.failed { background: #ffeaea; color: #e74c3c; }
+    .status.busy { background: #fff3cd; color: #f39c12; }
+    .status.no-answer { background: #e9ecef; color: #6c757d; }
+    
+    .action-btn {
+      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      min-width: 70px;
+    }
+    
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .action-btn.completed {
+      background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+      cursor: default;
+    }
+    
+    .action-btn.completed:hover {
+      transform: none;
+    }
+    
+    .footer-actions { 
+      margin-top: 20px; 
+      display: flex; 
+      gap: 12px;
+      justify-content: center;
+    }
+    
+    .footer-actions button {
+      background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .footer-actions button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(52, 73, 94, 0.3);
+    }
+    
+    /* עיצוב מיוחד לטלפונים */
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      
+      h1 { font-size: 1.8em; margin-bottom: 20px; }
+      
+      .tabs { 
+        flex-direction: column; 
+        gap: 8px;
+      }
+      
+      .tab-btn { 
+        padding: 12px 20px;
+        text-align: center;
+      }
+      
+      .filters { 
+        flex-direction: column; 
+        gap: 12px;
+        padding: 15px;
+      }
+      
+      .filters label { 
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .filters input[type="date"] { 
+        flex: 1;
+        min-width: 0;
+      }
+      
+      .filters button { 
+        width: 100%;
+        padding: 12px;
+      }
+      
+      table { 
+        font-size: 14px;
+      }
+      
+      th, td { 
+        padding: 10px 6px;
+      }
+      
+      .phone-number {
+        font-size: 12px;
+        min-width: 100px;
+        padding: 4px 8px;
+      }
+      
+      .action-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+        min-width: 60px;
+      }
+      
+      .footer-actions {
+        flex-direction: column;
+      }
+      
+      .footer-actions button {
+        width: 100%;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .table-container {
+        margin: 0 -10px;
+        border-radius: 0;
+      }
+      
+      table {
+        font-size: 12px;
+      }
+      
+      th, td {
+        padding: 8px 4px;
+      }
+      
+      .phone-number {
+        font-size: 11px;
+        padding: 3px 6px;
+        min-width: 90px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>לוג שיחות</h1>
+  <div class="container">
+    <h1>לוג שיחות</h1>
 
-  <script>
-    // ה-API באותו פרויקט
-    const INBOUND_API_URL  = '/api/twilio-inbound-calls';
-    const OUTBOUND_API_URL = '/api/twilio-outbound-calls';
-  </script>
+    <script>
+      // ה-API באותו פרויקט
+      const INBOUND_API_URL  = '/api/twilio-inbound-calls';
+      const OUTBOUND_API_URL = '/api/twilio-outbound-calls';
+      
+      // פונקציה לעיבוד מספרי טלפון
+      function formatPhoneNumber(phone) {
+        if (!phone) return '';
+        // הסרת +972 והחלפה ב-0
+        return phone.replace(/^\+972/, '0');
+      }
+      
+      // פונקציה לעיצוב סטטוס
+      function formatStatus(status) {
+        const statusMap = {
+          'completed': 'completed',
+          'answered': 'completed', 
+          'failed': 'failed',
+          'busy': 'busy',
+          'no-answer': 'no-answer',
+          'no_answer': 'no-answer'
+        };
+        return statusMap[status] || 'no-answer';
+      }
+    </script>
 
-  <div class="tabs">
-    <button id="tab-out" class="tab-btn active">שיחות יוצאות</button>
-    <button id="tab-in"  class="tab-btn">שיחות נכנסות</button>
+    <div class="tabs">
+      <button id="tab-in"  class="tab-btn active">שיחות נכנסות</button>
+      <button id="tab-out" class="tab-btn">שיחות יוצאות</button>
+    </div>
+
+    <!-- נכנסות -->
+    <section id="panel-in" class="panel active">
+      <div class="filters">
+        <label>מ־תאריך: <input type="date" id="in-from"></label>
+        <label>עד תאריך: <input type="date" id="in-to"></label>
+        <button id="in-load">טען</button>
+        <button id="in-more" disabled>טען עוד</button>
+      </div>
+      <div class="table-container">
+        <table id="in-table">
+          <thead>
+            <tr>
+              <th>מתקשר</th><th>תאריך ושעה (א״י)</th><th>משך (ש׳׳)</th><th>סטטוס</th><th>פעולה</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="footer-actions">
+        <button id="in-export">ייצוא CSV</button>
+      </div>
+    </section>
+
+    <!-- יוצאות -->
+    <section id="panel-out" class="panel">
+      <div class="filters">
+        <label>מ־תאריך: <input type="date" id="out-from"></label>
+        <label>עד תאריך: <input type="date" id="out-to"></label>
+        <button id="out-load">טען</button>
+        <button id="out-more" disabled>טען עוד</button>
+      </div>
+      <div class="table-container">
+        <table id="out-table">
+          <thead>
+            <tr>
+              <th>למי התקשרנו</th><th>תאריך ושעה (א״י)</th><th>משך (ש׳׳)</th><th>סטטוס</th><th>פעולה</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="footer-actions">
+        <button id="out-export">ייצוא CSV</button>
+      </div>
+    </section>
   </div>
-
-  <!-- יוצאות -->
-  <section id="panel-out" class="panel active">
-    <div class="filters">
-      <label>מ־תאריך: <input type="date" id="out-from"></label>
-      <label>עד תאריך: <input type="date" id="out-to"></label>
-      <button id="out-load">טען</button>
-      <button id="out-more" disabled>טען עוד</button>
-    </div>
-    <table id="out-table">
-      <thead>
-        <tr>
-          <th>From</th><th>To</th><th>תאריך ושעה (א״י)</th><th>משך (ש׳׳)</th><th>סטטוס</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <div class="footer-actions">
-      <button id="out-export">ייצוא CSV</button>
-    </div>
-  </section>
-
-  <!-- נכנסות -->
-  <section id="panel-in" class="panel">
-    <div class="filters">
-      <label>מ־תאריך: <input type="date" id="in-from"></label>
-      <label>עד תאריך: <input type="date" id="in-to"></label>
-      <button id="in-load">טען</button>
-      <button id="in-more" disabled>טען עוד</button>
-    </div>
-    <table id="in-table">
-      <thead>
-        <tr>
-          <th>מתקשר (From)</th><th>אל מי (To)</th><th>תאריך ושעה (א״י)</th><th>משך (ש׳׳)</th><th>סטטוס</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <div class="footer-actions">
-      <button id="in-export">ייצוא CSV</button>
-    </div>
-  </section>
 
   <script>
     (function(){
@@ -88,11 +413,23 @@
         hour:'2-digit', minute:'2-digit', second:'2-digit'
       }).format(new Date(d));
 
-      // טאבים
+      // טאבים - שיחות נכנסות כברירת מחדל
       const tabOut=document.getElementById('tab-out'), tabIn=document.getElementById('tab-in');
       const panelOut=document.getElementById('panel-out'), panelIn=document.getElementById('panel-in');
-      tabOut.onclick=()=>{tabOut.classList.add('active');tabIn.classList.remove('active');panelOut.classList.add('active');panelIn.classList.remove('active');};
-      tabIn.onclick =()=>{tabIn .classList.add('active');tabOut.classList.remove('active');panelIn .classList.add('active');panelOut.classList.remove('active');};
+      
+      tabOut.onclick=()=>{
+        tabOut.classList.add('active');
+        tabIn.classList.remove('active');
+        panelOut.classList.add('active');
+        panelIn.classList.remove('active');
+      };
+      
+      tabIn.onclick =()=>{
+        tabIn.classList.add('active');
+        tabOut.classList.remove('active');
+        panelIn.classList.add('active');
+        panelOut.classList.remove('active');
+      };
 
       async function fetchPage(url,{fromDate,toDate,pageToken}={}){
         const p=new URLSearchParams();
@@ -103,57 +440,124 @@
         if(!r.ok) throw new Error('שגיאה בשליפת נתונים');
         return r.json();
       }
-      function appendRows(tbody,items){
+      
+      function createActionButton() {
+        const btn = document.createElement('button');
+        btn.className = 'action-btn';
+        btn.textContent = 'בוצע';
+        btn.onclick = function() {
+          this.classList.add('completed');
+          this.textContent = '✓ בוצע';
+        };
+        return btn;
+      }
+      
+      function appendRowsInbound(tbody,items){
         for(const c of (items||[])){
           const tr=document.createElement('tr');
-          tr.innerHTML=`<td>${c.from||''}</td><td>${c.to||''}</td><td>${fmt(c.startTime)}</td><td>${c.duration??''}</td><td>${c.status||''}</td>`;
+          const phoneFormatted = formatPhoneNumber(c.from);
+          const statusFormatted = formatStatus(c.status);
+          
+          tr.innerHTML=`
+            <td><span class="phone-number">${phoneFormatted}</span></td>
+            <td>${fmt(c.startTime)}</td>
+            <td>${c.duration??''}</td>
+            <td><span class="status ${statusFormatted}">${c.status||''}</span></td>
+            <td></td>
+          `;
+          
+          // הוספת כפתור פעולה
+          const actionCell = tr.lastElementChild;
+          actionCell.appendChild(createActionButton());
+          
           tbody.appendChild(tr);
         }
       }
+      
+      function appendRowsOutbound(tbody,items){
+        for(const c of (items||[])){
+          const tr=document.createElement('tr');
+          const phoneFormatted = formatPhoneNumber(c.to);
+          const statusFormatted = formatStatus(c.status);
+          
+          tr.innerHTML=`
+            <td><span class="phone-number">${phoneFormatted}</span></td>
+            <td>${fmt(c.startTime)}</td>
+            <td>${c.duration??''}</td>
+            <td><span class="status ${statusFormatted}">${c.status||''}</span></td>
+            <td></td>
+          `;
+          
+          // הוספת כפתור פעולה
+          const actionCell = tr.lastElementChild;
+          actionCell.appendChild(createActionButton());
+          
+          tbody.appendChild(tr);
+        }
+      }
+      
       function exportCSV(tableId,filename){
         const rows=[...document.querySelectorAll(`#${tableId} tr`)];
         const csv=rows.map(r=>[...r.querySelectorAll('th,td')].map(td=>{
-          let t=(td.textContent||'').replace(/"/g,'""'); if(/[",\n]/.test(t)) t=`"${t}"`; return t;
+          let t=(td.textContent||'').replace(/"/g,'""'); 
+          if(/[",\n]/.test(t)) t=`"${t}"`; 
+          return t;
         }).join(',')).join('\n');
         const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}), a=document.createElement('a');
-        a.href=URL.createObjectURL(blob); a.download=filename; a.style.display='none'; document.body.appendChild(a); a.click(); a.remove();
+        a.href=URL.createObjectURL(blob); 
+        a.download=filename; 
+        a.style.display='none'; 
+        document.body.appendChild(a); 
+        a.click(); 
+        a.remove();
       }
 
-      // יוצאות
-      let outNext=null;
-      const outFrom=document.getElementById('out-from'), outTo=document.getElementById('out-to');
-      const outLoad=document.getElementById('out-load'), outMore=document.getElementById('out-more');
-      const outTbody=document.querySelector('#out-table tbody');
-      document.getElementById('out-export').onclick=()=>exportCSV('out-table','outbound-calls.csv');
-      async function loadOut(reset=false){
-        const fromDate=outFrom.value||'', toDate=outTo.value||'', token=reset?null:outNext;
-        if(reset){ outTbody.innerHTML=''; outNext=null; }
-        const data=await fetchPage(OUTBOUND_API_URL,{fromDate,toDate,pageToken:token});
-        appendRows(outTbody,data.items||data||[]); // תומך גם במערך פשוט
-        outNext=data.nextPageToken||null; outMore.disabled=!outNext;
-      }
-      outLoad.onclick=()=>loadOut(true); outMore.onclick=()=>loadOut(false);
-
-      // נכנסות
+      // שיחות נכנסות
       let inNext=null;
       const inFrom=document.getElementById('in-from'), inTo=document.getElementById('in-to');
       const inLoad=document.getElementById('in-load'), inMore=document.getElementById('in-more');
       const inTbody=document.querySelector('#in-table tbody');
       document.getElementById('in-export').onclick=()=>exportCSV('in-table','inbound-calls.csv');
+      
       async function loadIn(reset=false){
         const fromDate=inFrom.value||'', toDate=inTo.value||'', token=reset?null:inNext;
         if(reset){ inTbody.innerHTML=''; inNext=null; }
         const data=await fetchPage(INBOUND_API_URL,{fromDate,toDate,pageToken:token});
-        appendRows(inTbody,data.items||data||[]); 
-        inNext=data.nextPageToken||null; inMore.disabled=!inNext;
+        appendRowsInbound(inTbody,data.items||data||[]); 
+        inNext=data.nextPageToken||null; 
+        inMore.disabled=!inNext;
       }
-      inLoad.onclick=()=>loadIn(true); inMore.onclick=()=>loadIn(false);
+      
+      inLoad.onclick=()=>loadIn(true); 
+      inMore.onclick=()=>loadIn(false);
+
+      // שיחות יוצאות
+      let outNext=null;
+      const outFrom=document.getElementById('out-from'), outTo=document.getElementById('out-to');
+      const outLoad=document.getElementById('out-load'), outMore=document.getElementById('out-more');
+      const outTbody=document.querySelector('#out-table tbody');
+      document.getElementById('out-export').onclick=()=>exportCSV('out-table','outbound-calls.csv');
+      
+      async function loadOut(reset=false){
+        const fromDate=outFrom.value||'', toDate=outTo.value||'', token=reset?null:outNext;
+        if(reset){ outTbody.innerHTML=''; outNext=null; }
+        const data=await fetchPage(OUTBOUND_API_URL,{fromDate,toDate,pageToken:token});
+        appendRowsOutbound(outTbody,data.items||data||[]); 
+        outNext=data.nextPageToken||null; 
+        outMore.disabled=!outNext;
+      }
+      
+      outLoad.onclick=()=>loadOut(true); 
+      outMore.onclick=()=>loadOut(false);
 
       // ברירת־מחדל: שבוע אחורה
       const now=new Date(), weekAgo=new Date(now.getTime()-7*24*60*60*1000);
       const defFrom=weekAgo.toISOString().slice(0,10), defTo=now.toISOString().slice(0,10);
       outFrom.value=defFrom; outTo.value=defTo; inFrom.value=defFrom; inTo.value=defTo;
-      loadOut(true).catch(console.error); loadIn(true).catch(console.error);
+      
+      // טעינה ראשונית - נכנסות קודם
+      loadIn(true).catch(console.error); 
+      loadOut(true).catch(console.error);
     })();
   </script>
 </body>
