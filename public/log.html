@@ -657,12 +657,56 @@
       const defFrom=weekAgo.toISOString().slice(0,10), defTo=now.toISOString().slice(0,10);
       outFrom.value=defFrom; outTo.value=defTo; inFrom.value=defFrom; inTo.value=defTo;
       
+      // רענון אוטומטי
+      let autoRefreshInterval;
+      
+      function startAutoRefresh() {
+        // ניקוי מרווח קיים אם יש
+        if (autoRefreshInterval) {
+          clearInterval(autoRefreshInterval);
+        }
+        
+        // הגדרת רענון כל 5 דקות (300,000 מילישניות)
+        autoRefreshInterval = setInterval(async () => {
+          try {
+            console.log('רענון אוטומטי...');
+            await loadCompletedCalls();
+            
+            // רענון הטאב הפעיל בלבד
+            const activePanel = document.querySelector('.panel.active');
+            if (activePanel.id === 'panel-in') {
+              await loadIn(true);
+            } else if (activePanel.id === 'panel-out') {
+              await loadOut(true);
+            }
+          } catch (error) {
+            console.error('שגיאה ברענון אוטומטי:', error);
+          }
+        }, 300000); // 5 דקות
+      }
+      
       // טעינה ראשונית
       async function init() {
         await loadCompletedCalls();
         loadIn(true).catch(console.error); 
         loadOut(true).catch(console.error);
+        
+        // הפעלת רענון אוטומטי
+        startAutoRefresh();
       }
+      
+      // עצירת הרענון האוטומטי כשהעמוד לא פעיל (אופציונלי)
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+          }
+        } else {
+          // חזרה לרענון כשהעמוד חוזר להיות פעיל
+          startAutoRefresh();
+        }
+      });
       
       init();
     })();
