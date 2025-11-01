@@ -85,7 +85,7 @@
       color: #5a6c7d;
     }
     
-    .filters input[type="date"] { 
+    .filters input[type="date"], .filters select { 
       padding: 10px 12px;
       border: 2px solid #e1e8ed;
       border-radius: 10px;
@@ -94,7 +94,7 @@
       background: white;
     }
     
-    .filters input[type="date"]:focus {
+    .filters input[type="date"]:focus, .filters select:focus {
       outline: none;
       border-color: #667eea;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -223,6 +223,11 @@
       box-shadow: 0 6px 20px rgba(52, 73, 94, 0.3);
     }
     
+    /* שורות מוסתרות */
+    .row-hidden {
+      display: none !important;
+    }
+    
     /* עיצוב מיוחד לטלפונים */
     @media (max-width: 768px) {
       body { padding: 10px; }
@@ -250,7 +255,7 @@
         justify-content: space-between;
       }
       
-      .filters input[type="date"] { 
+      .filters input[type="date"], .filters select { 
         flex: 1;
         min-width: 0;
       }
@@ -371,6 +376,10 @@
             button.classList.remove('loading');
             button.classList.add('completed');
             button.textContent = '✓ בוצע';
+            
+            // עדכון הסינון אחרי השמירה
+            applyStatusFilter('inbound');
+            applyStatusFilter('outbound');
           } else {
             throw new Error('שגיאה בשמירה');
           }
@@ -382,6 +391,34 @@
             button.textContent = 'בוצע';
           }, 2000);
         }
+      }
+      
+      // פונקציה לסינון לפי סטטוס
+      function applyStatusFilter(type) {
+        const selectId = type === 'inbound' ? 'in-status' : 'out-status';
+        const tableId = type === 'inbound' ? 'in-table' : 'out-table';
+        const statusFilter = document.getElementById(selectId).value;
+        const tbody = document.querySelector(`#${tableId} tbody`);
+        const rows = tbody.querySelectorAll('tr');
+        
+        rows.forEach(row => {
+          const actionBtn = row.querySelector('.action-btn');
+          const isCompleted = actionBtn && actionBtn.classList.contains('completed');
+          
+          let shouldShow = true;
+          
+          if (statusFilter === 'completed' && !isCompleted) {
+            shouldShow = false;
+          } else if (statusFilter === 'pending' && isCompleted) {
+            shouldShow = false;
+          }
+          
+          if (shouldShow) {
+            row.classList.remove('row-hidden');
+          } else {
+            row.classList.add('row-hidden');
+          }
+        });
       }
     </script>
 
@@ -395,6 +432,13 @@
       <div class="filters">
         <label>מ־תאריך: <input type="date" id="in-from"></label>
         <label>עד תאריך: <input type="date" id="in-to"></label>
+        <label>סטטוס: 
+          <select id="in-status">
+            <option value="pending">לא בוצע</option>
+            <option value="all">הכל</option>
+            <option value="completed">בוצע</option>
+          </select>
+        </label>
         <button id="in-load">טען</button>
         <button id="in-more" disabled>טען עוד</button>
       </div>
@@ -418,6 +462,13 @@
       <div class="filters">
         <label>מ־תאריך: <input type="date" id="out-from"></label>
         <label>עד תאריך: <input type="date" id="out-to"></label>
+        <label>סטטוס: 
+          <select id="out-status">
+            <option value="pending">לא בוצע</option>
+            <option value="all">הכל</option>
+            <option value="completed">בוצע</option>
+          </select>
+        </label>
         <button id="out-load">טען</button>
         <button id="out-more" disabled>טען עוד</button>
       </div>
@@ -510,6 +561,9 @@
           
           tbody.appendChild(tr);
         }
+        
+        // החלת הסינון על השורות החדשות
+        applyStatusFilter('inbound');
       }
       
       function appendRowsOutbound(tbody,items){
@@ -531,10 +585,13 @@
           
           tbody.appendChild(tr);
         }
+        
+        // החלת הסינון על השורות החדשות
+        applyStatusFilter('outbound');
       }
       
       function exportCSV(tableId,filename){
-        const rows=[...document.querySelectorAll(`#${tableId} tr`)];
+        const rows=[...document.querySelectorAll(`#${tableId} tr:not(.row-hidden)`)];
         const csv=rows.map(r=>[...r.querySelectorAll('th,td')].map(td=>{
           let t=(td.textContent||'').replace(/"/g,'""'); 
           if(/[",\n]/.test(t)) t=`"${t}"`; 
@@ -553,8 +610,12 @@
       let inNext=null;
       const inFrom=document.getElementById('in-from'), inTo=document.getElementById('in-to');
       const inLoad=document.getElementById('in-load'), inMore=document.getElementById('in-more');
+      const inStatus=document.getElementById('in-status');
       const inTbody=document.querySelector('#in-table tbody');
       document.getElementById('in-export').onclick=()=>exportCSV('in-table','inbound-calls.csv');
+      
+      // הוספת מאזין לשינוי סטטוס
+      inStatus.onchange = () => applyStatusFilter('inbound');
       
       async function loadIn(reset=false){
         const fromDate=inFrom.value||'', toDate=inTo.value||'', token=reset?null:inNext;
@@ -572,8 +633,12 @@
       let outNext=null;
       const outFrom=document.getElementById('out-from'), outTo=document.getElementById('out-to');
       const outLoad=document.getElementById('out-load'), outMore=document.getElementById('out-more');
+      const outStatus=document.getElementById('out-status');
       const outTbody=document.querySelector('#out-table tbody');
       document.getElementById('out-export').onclick=()=>exportCSV('out-table','outbound-calls.csv');
+      
+      // הוספת מאזין לשינוי סטטוס
+      outStatus.onchange = () => applyStatusFilter('outbound');
       
       async function loadOut(reset=false){
         const fromDate=outFrom.value||'', toDate=outTo.value||'', token=reset?null:outNext;
